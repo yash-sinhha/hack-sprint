@@ -84,7 +84,7 @@ try {
 
         $RawPath = [System.Uri]::UnescapeDataString($Request.Url.AbsolutePath.TrimStart('/'))
         if ([string]::IsNullOrWhiteSpace($RawPath)) {
-            $RawPath = "landing.html"
+            $RawPath = "index.html"
         }
 
         # Normalize relative path and prevent directory traversal

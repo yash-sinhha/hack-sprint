@@ -123,13 +123,6 @@ class SmartEventApp {
      ========================================================================== */
 
   renderHeader() {
-    const personaToggle = document.getElementById("persona-switch-btn");
-    if (personaToggle) {
-      personaToggle.textContent = this.currentPersona === "attendee"
-        ? "Switch to Organizer Mode"
-        : "Switch to Attendee Mode";
-      personaToggle.className = `btn-persona ${this.currentPersona === "organizer" ? "active-organizer" : ""}`;
-    }
     this.renderAuthState(this.auth.user);
   }
 
@@ -1133,7 +1126,7 @@ class SmartEventApp {
               <td>
                 ${!isResolved ? `
                   <button class="btn btn-sm btn-primary btn-org-dispatch" data-inc-id="${inc.id}" style="gap:0.3rem;">
-                    ${ICONS.dispatch} Dispatch Team
+                    ${ICONS.dispatch} Allocate Team
                   </button>
                   <button class="btn btn-sm btn-secondary btn-org-resolve" data-inc-id="${inc.id}" style="gap:0.3rem;">
                     ${ICONS.check} Resolve
@@ -1259,11 +1252,6 @@ class SmartEventApp {
       this.openAuthModal(modal?.dataset.mode === "signup" ? "signin" : "signup");
     });
 
-    // Persona Switch
-    document.getElementById("persona-switch-btn")?.addEventListener("click", () => {
-      this.togglePersona();
-    });
-
     // Attendee Navigation Tabs
     document.querySelectorAll(".nav-tab-btn").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -1346,6 +1334,7 @@ class SmartEventApp {
     const broadcastForm = document.getElementById("form-org-broadcast");
     broadcastForm?.addEventListener("submit", (e) => {
       e.preventDefault();
+      if (this.currentPersona !== "organizer") return;
       const title = document.getElementById("input-broadcast-title").value;
       const type = document.getElementById("select-broadcast-type").value;
       const message = document.getElementById("input-broadcast-message").value;

@@ -40,7 +40,7 @@ export async function runAllQATests() {
     // -------------------------------------------------------------
     assert("App Instance Available", !!app, "SmartEventApp initialized properly");
     assert("Header SOS Button Exists", !!document.getElementById("btn-global-sos"));
-    assert("Persona Switcher Button Exists", !!document.getElementById("persona-switch-btn"));
+    assert("Role-based mode switch removed", !document.getElementById("persona-switch-btn"));
     assert("Live Announcements Bar Rendered", !!document.getElementById("live-announcements-banner"));
     assert("Home Pulse Stats Rendered", document.getElementById("home-pulse-stats").children.length >= 3);
     assert("Next Highlight Session Rendered", !!document.querySelector("#home-next-session .featured-session-card"));
