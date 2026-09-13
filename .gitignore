@@ -1,0 +1,20 @@
+# Intermediates and temporary files
+.tmp/
+*.tmp
+
+# Environment variables and API keys
+.env
+data/*.sqlite3
+
+# Google OAuth credentials
+credentials.json
+token.json
+
+# Python cache and environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
