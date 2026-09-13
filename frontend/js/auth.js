@@ -2,7 +2,7 @@ const isLocalAuthServer = ["localhost", "127.0.0.1"].includes(window.location.ho
   && window.location.port !== "";
 const AUTH_API_BASE = isLocalAuthServer
   ? `${window.location.protocol}//${window.location.hostname}:3000/api/auth`
-  : "/api/auth";
+  : "https://hack-sprint-r39q.onrender.com/api/auth";
 
 export class AuthManager {
   constructor({ onStateChanged } = {}) {

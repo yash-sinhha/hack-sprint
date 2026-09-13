@@ -57,9 +57,14 @@ function sendJson(response, statusCode, payload, headers = {}) {
 
 function setCorsHeaders(request, response) {
   const origin = request.headers.origin || "";
-  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
+  const configuredOrigins = (process.env.FRONTEND_ORIGIN || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin) || configuredOrigins.includes(origin)) {
     response.setHeader("Access-Control-Allow-Origin", origin);
     response.setHeader("Access-Control-Allow-Credentials", "true");
+    response.setHeader("Vary", "Origin");
   }
 }
 
@@ -94,11 +99,17 @@ function cookieSecurity(request) {
 }
 
 function sessionCookie(request, token) {
-  return `nexus_session=${encodeURIComponent(token)}; HttpOnly${cookieSecurity(request)}; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE}`;
+  const sameSite = request.headers.origin && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(request.headers.origin)
+    ? "None"
+    : "Lax";
+  return `nexus_session=${encodeURIComponent(token)}; HttpOnly${cookieSecurity(request)}; SameSite=${sameSite}; Path=/; Max-Age=${SESSION_MAX_AGE}`;
 }
 
 function expiredSessionCookie(request) {
-  return `nexus_session=; HttpOnly${cookieSecurity(request)}; SameSite=Lax; Path=/; Max-Age=0`;
+  const sameSite = request.headers.origin && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(request.headers.origin)
+    ? "None"
+    : "Lax";
+  return `nexus_session=; HttpOnly${cookieSecurity(request)}; SameSite=${sameSite}; Path=/; Max-Age=0`;
 }
 
 function createSession(user) {
@@ -183,7 +194,7 @@ function handleSession(request, response, route) {
 
 function serveStatic(request, response) {
   const requestPath = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
-  const relativePath = requestPath === "/" ? "index.html" : requestPath.slice(1);
+  const relativePath = requestPath === "/" ? "landing.html" : requestPath.slice(1);
   const filePath = path.resolve(ROOT_DIR, relativePath);
   if (filePath !== ROOT_DIR && !filePath.startsWith(`${ROOT_DIR}${path.sep}`)) {
     response.writeHead(403);
