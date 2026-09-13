@@ -695,6 +695,15 @@ body::before {
 .auth-brand-lockup span { margin-top: 0.12rem; color: var(--accent-cyan); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
 .auth-dialog .modal-header h2 { color: #ffffff; }
 .auth-dialog .form-input { background: rgba(255,255,255,0.055); border-color: rgba(255,255,255,0.12); }
+.attendee-sos-status-section { margin: 1.5rem 0 2rem; padding: 1.25rem; border: 1px solid rgba(239,68,68,0.2); border-radius: var(--radius-md); background: rgba(239,68,68,0.045); }
+.section-heading-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 0.9rem; }
+.section-heading-row h3 { font-size: 1rem; font-weight: 750; }
+.read-only-badge { flex-shrink: 0; padding: 0.3rem 0.55rem; border: 1px solid var(--border-color); border-radius: var(--radius-full); color: var(--text-muted); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+.attendee-sos-status-card { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.8rem 0; border-top: 1px solid rgba(255,255,255,0.07); }
+.attendee-sos-status-card strong, .attendee-sos-status-card span { display: block; }
+.attendee-sos-status-card strong { font-size: 0.82rem; }
+.attendee-sos-status-card div > span { margin-top: 0.2rem; color: var(--text-muted); font-size: 0.75rem; }
+.attendee-sos-empty { color: var(--text-muted); font-size: 0.8rem; }
 
 /* ==========================================================================
    ANNOUNCEMENTS TICKER

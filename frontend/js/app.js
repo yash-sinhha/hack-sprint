@@ -930,6 +930,28 @@ class SmartEventApp {
         }
       });
     }
+
+    const statusTarget = document.getElementById("attendee-sos-status-list");
+    if (statusTarget) {
+      const incidents = this.emergencySystem.getIncidents();
+      statusTarget.innerHTML = incidents.length === 0
+        ? `<p class="attendee-sos-empty">No SOS reports have been submitted.</p>`
+        : incidents.slice(0, 5).map((incident) => {
+          const isResolved = incident.status === "Resolved";
+          const isDispatched = incident.status === "Responders En Route" || isResolved;
+          const statusClass = isResolved ? "status-optimal" : isDispatched ? "status-moderate" : "status-high";
+          const statusLabel = isResolved ? "Resolved" : isDispatched ? "Team dispatched" : "Awaiting team allocation";
+          return `
+            <article class="attendee-sos-status-card">
+              <div>
+                <strong>#${incident.id}</strong>
+                <span>${incident.type} &middot; ${incident.location}</span>
+              </div>
+              <span class="status-chip ${statusClass}">${statusLabel}</span>
+            </article>
+          `;
+        }).join("");
+    }
   }
 
   openSOSModal() {
@@ -1024,10 +1046,12 @@ class SmartEventApp {
   }
 
   handleIncidentCreated(incident) {
+    this.renderEmergencyCenter();
     this.renderOrganizerDashboard();
   }
 
   handleIncidentUpdated(incident) {
+    this.renderEmergencyCenter();
     this.renderOrganizerDashboard();
   }
 

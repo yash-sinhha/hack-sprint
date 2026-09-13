@@ -10,6 +10,13 @@ export class EmergencySystem {
     this.incidents = this.loadIncidents();
     this.onIncidentCreated = options.onIncidentCreated || null;
     this.onIncidentUpdated = options.onIncidentUpdated || null;
+    if (typeof window !== "undefined") {
+      window.addEventListener("storage", (event) => {
+        if (event.key !== this.storageKey) return;
+        this.incidents = this.loadIncidents();
+        this.onIncidentUpdated?.(this.incidents[0] || null);
+      });
+    }
   }
 
   loadIncidents() {
