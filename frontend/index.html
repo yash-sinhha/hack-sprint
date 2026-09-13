@@ -14,60 +14,53 @@
   <!-- Global ARIA Live Region for Screen-Reader Announcements -->
   <div id="a11y-live-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- Public Landing Page -->
-  <main id="public-landing" class="public-landing" aria-labelledby="landing-title">
-    <nav class="landing-nav" aria-label="Landing page navigation">
-      <div class="landing-brand">
-        <span class="landing-brand-mark" aria-hidden="true">N</span>
-        <span>NexusCon <strong>2026</strong></span>
-      </div>
-      <button type="button" class="btn btn-outline landing-login-btn" id="btn-landing-login">Sign In</button>
-    </nav>
+  <!-- Public Role Selection Page -->
+  <main id="public-landing" class="role-page" aria-labelledby="role-page-title">
+    <header class="role-header">
+      <a class="eventiq-brand" href="/" aria-label="NexusCon 2026 home">
+        <span class="eventiq-mark" aria-hidden="true">N</span>
+        <span>NexusCon <strong>2026</strong><small>Smart Event OS</small></span>
+      </a>
+      <button type="button" class="role-signin-button" id="btn-landing-login">Sign In <span aria-hidden="true">&rarr;</span></button>
+    </header>
 
-    <section class="landing-hero">
-      <div class="landing-hero-copy">
-        <p class="landing-kicker">SMART EVENT OPERATIONS PLATFORM</p>
-        <h1 id="landing-title">Move through the event with confidence.</h1>
-        <p class="landing-lede">NexusCon brings navigation, discovery, accessibility, crowd awareness, and emergency support into one calm, connected experience.</p>
-        <div class="landing-actions">
-          <button type="button" class="btn btn-primary landing-primary-action" id="btn-landing-hero-login">Sign in to your dashboard</button>
-          <a class="landing-text-link" href="#landing-capabilities">Explore capabilities <span aria-hidden="true">&darr;</span></a>
+    <section class="role-intro">
+      <p class="role-eyebrow">WELCOME TO NEXUSCON</p>
+      <h1 id="role-page-title">Select Your Role</h1>
+      <p>Choose how you want to experience and manage your next event.</p>
+    </section>
+
+    <section class="role-card-grid" aria-label="Choose your NexusCon role">
+      <article class="role-card role-card-attendee">
+        <div class="role-card-topline"><span class="role-icon role-icon-person" aria-hidden="true">&#9673;</span><span class="role-badge">For participants</span></div>
+        <h2>Summit Attendee</h2>
+        <p class="role-card-description">Your personal event companion for discovering sessions, navigating the venue, and making the most of every moment.</p>
+        <div class="role-preview role-preview-attendee">
+          <div class="preview-label">ATTENDEE PORTAL</div>
+          <div class="preview-row"><span class="preview-avatar">JD</span><span><strong>Your event, your way</strong><small>Schedule &middot; Map &middot; Recommendations</small></span><span class="preview-arrow">&rarr;</span></div>
         </div>
-      </div>
-      <div class="landing-signal-panel" aria-label="Live event platform preview">
-        <div class="signal-panel-header"><span class="signal-status-dot"></span> LIVE EVENT SIGNAL</div>
-        <div class="signal-panel-title">One shared view of the venue</div>
-        <div class="signal-map-preview" aria-hidden="true">
-          <span class="signal-route signal-route-one"></span>
-          <span class="signal-route signal-route-two"></span>
-          <span class="signal-node signal-node-one"></span>
-          <span class="signal-node signal-node-two"></span>
-          <span class="signal-node signal-node-three"></span>
+        <div class="role-card-actions">
+          <button type="button" class="role-button role-button-dark" data-role="attendee" data-auth-mode="signin">Enter Attendee Portal <span aria-hidden="true">&rarr;</span></button>
+          <button type="button" class="role-button role-button-light" data-role="attendee" data-auth-mode="signup">Create Attendee Account</button>
         </div>
-        <div class="signal-panel-footer"><span>8 monitored zones</span><span>Step-free routes</span></div>
-      </div>
+      </article>
+
+      <article class="role-card role-card-organizer">
+        <div class="role-card-topline"><span class="role-icon role-icon-organizer" aria-hidden="true">&#10022;</span><span class="role-badge">For event teams</span></div>
+        <h2>Event Organizer</h2>
+        <p class="role-card-description">A live command center for coordinating people, monitoring venue flow, broadcasting updates, and responding fast.</p>
+        <div class="role-preview role-preview-organizer">
+          <div class="preview-label">ORGANIZER COMMAND</div>
+          <div class="preview-metrics"><span><strong>3,412</strong><small>Checked in</small></span><span><strong class="metric-live">LIVE</strong><small>Venue status</small></span><span><strong>08</strong><small>Zones</small></span></div>
+        </div>
+        <div class="role-card-actions">
+          <button type="button" class="role-button role-button-dark" data-role="organizer" data-auth-mode="signin">Enter Organizer Command <span aria-hidden="true">&rarr;</span></button>
+          <button type="button" class="role-button role-button-light" data-role="organizer" data-auth-mode="signin">Sign In as Organizer</button>
+        </div>
+      </article>
     </section>
 
-    <section class="landing-about" aria-labelledby="landing-about-title">
-      <div>
-        <p class="landing-kicker">ABOUT NEXUSCON</p>
-        <h2 id="landing-about-title">Designed for the moments between the main moments.</h2>
-      </div>
-      <p>From finding the right room to avoiding a crowded corridor, NexusCon helps attendees make better decisions in real time. Organizers get the same operational picture, with tools to respond quickly and keep people moving safely.</p>
-    </section>
-
-    <section id="landing-capabilities" class="landing-capabilities" aria-labelledby="landing-capabilities-title">
-      <div class="landing-section-heading">
-        <p class="landing-kicker">WHAT YOU CAN DO</p>
-        <h2 id="landing-capabilities-title">Everything important, close at hand.</h2>
-      </div>
-      <div class="capability-grid">
-        <article class="capability-item"><span class="capability-number">01</span><h3>Find your way</h3><p>Explore an interactive venue map with live routes, accessible paths, and crowd-aware detours.</p></article>
-        <article class="capability-item"><span class="capability-number">02</span><h3>Shape your day</h3><p>Search sessions, bookmark your schedule, and discover recommendations matched to your interests.</p></article>
-        <article class="capability-item"><span class="capability-number">03</span><h3>Stay informed</h3><p>Receive operational announcements and understand venue flow before you arrive at a busy zone.</p></article>
-        <article class="capability-item capability-item-alert"><span class="capability-number">04</span><h3>Get help fast</h3><p>Use the always-available SOS flow to request medical, security, or mobility assistance.</p></article>
-      </div>
-    </section>
+    <p class="role-footer-note">Secure access &middot; One connected event experience</p>
   </main>
 
   <!-- Global Application Header -->
@@ -649,10 +642,18 @@
 
   <!-- Interest Selection Modal -->
   <div class="modal-backdrop" id="modal-interests" role="dialog" aria-modal="true" aria-labelledby="interests-modal-title">
-    <div class="modal-dialog">
+    <div class="modal-dialog auth-dialog">
       <button type="button" class="modal-close-btn" id="btn-close-interests-modal" aria-label="Close dialog">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
+
+      <div class="auth-brand-lockup">
+        <div class="auth-brand-mark" aria-hidden="true">N</div>
+        <div>
+          <strong>NexusCon 2026</strong>
+          <span>Smart Event OS</span>
+        </div>
+      </div>
 
       <div class="modal-header">
         <h2 id="interests-modal-title">Customize Your Interests</h2>

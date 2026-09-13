@@ -1,6 +1,6 @@
 "use strict";
 
-require("dotenv").config({ path: require("node:path").resolve(__dirname, "../.env") });
+require("dotenv").config({ path: require("node:path").resolve(__dirname, "../../.env") });
 
 const crypto = require("node:crypto");
 const fs = require("node:fs");
@@ -8,7 +8,7 @@ const http = require("node:http");
 const path = require("node:path");
 const { MongoClient } = require("mongodb");
 
-const ROOT_DIR = path.resolve(__dirname, "..");
+const ROOT_DIR = path.resolve(__dirname, "../../frontend");
 const PORT = Number.parseInt(process.env.AUTH_PORT || "3000", 10);
 const MONGODB_URI = process.env.MONGODB_URI;
 const MONGODB_DB = process.env.MONGODB_DB || "smart_event_experience";

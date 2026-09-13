@@ -1,0 +1,17 @@
+[build]
+  publish = "frontend"
+  functions = "backend/netlify/functions"
+
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "AUTH_PORT,MONGODB_DB"
+  SECRETS_SCAN_OMIT_PATHS = "node_modules/**,backend/data/**"
+
+[[redirects]]
+  from = "/api/auth/*"
+  to = "/.netlify/functions/auth/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

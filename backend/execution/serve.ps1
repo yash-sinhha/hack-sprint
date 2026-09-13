@@ -15,7 +15,7 @@ param (
 
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$RootDir = Split-Path -Parent $ScriptDir
+$RootDir = Join-Path (Split-Path -Parent (Split-Path -Parent $ScriptDir)) "frontend"
 
 $MimeTypes = @{
     ".html" = "text/html; charset=utf-8"

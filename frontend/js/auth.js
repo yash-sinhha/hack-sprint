@@ -1,6 +1,8 @@
-const AUTH_API_BASE = window.location.port === "3000"
-  ? "/api/auth"
-  : `${window.location.protocol}//${window.location.hostname}:3000/api/auth`;
+const isLocalAuthServer = ["localhost", "127.0.0.1"].includes(window.location.hostname)
+  && window.location.port !== "";
+const AUTH_API_BASE = isLocalAuthServer
+  ? `${window.location.protocol}//${window.location.hostname}:3000/api/auth`
+  : "/api/auth";
 
 export class AuthManager {
   constructor({ onStateChanged } = {}) {

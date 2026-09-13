@@ -186,6 +186,11 @@ class SmartEventApp {
     modal.classList.add("modal-open");
   }
 
+  beginRoleAuth(role, mode = "signin") {
+    localStorage.setItem("nexus_pending_role", role);
+    this.openAuthModal(mode);
+  }
+
   async submitAuth(event) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -202,8 +207,15 @@ class SmartEventApp {
       const user = mode === "signup"
         ? await this.auth.signUp(name, email, password)
         : await this.auth.signIn(email, password);
+      const pendingRole = localStorage.getItem("nexus_pending_role");
+      if (pendingRole) {
+        this.currentPersona = pendingRole === "organizer" ? "organizer" : "attendee";
+        localStorage.setItem("nexus_persona", this.currentPersona);
+        localStorage.removeItem("nexus_pending_role");
+      }
       document.getElementById("modal-auth").classList.remove("modal-open");
       this.renderAuthState(user);
+      this.setupPersonaView();
       this.a11y.announceToScreenReader(`${mode === "signup" ? "Account created" : "Signed in"} for ${user.name}.`);
     } catch (error) {
       feedback.textContent = error.message;
@@ -1229,6 +1241,12 @@ class SmartEventApp {
 
     ["btn-landing-login", "btn-landing-hero-login"].forEach((id) => {
       document.getElementById(id)?.addEventListener("click", () => this.openAuthModal("signin"));
+    });
+
+    document.querySelectorAll("[data-role][data-auth-mode]").forEach((button) => {
+      button.addEventListener("click", () => {
+        this.beginRoleAuth(button.dataset.role, button.dataset.authMode);
+      });
     });
 
     document.getElementById("auth-form")?.addEventListener("submit", (event) => this.submitAuth(event));

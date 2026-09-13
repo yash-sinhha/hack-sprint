@@ -37,17 +37,17 @@ graph TD
     end
 
     subgraph Layer 2: Orchestration & Core App
-        APP["js/app.js<br/>Central Orchestrator & State Store"]
-        MAP["js/map.js<br/>Interactive SVG Vector Map & Dijkstra Engine"]
-        REC["js/recommendations.js<br/>Interest Scoring Engine"]
-        CROWD["js/crowd-engine.js<br/>Crowd Density & Surge Simulator"]
-        SOS["js/sos-system.js<br/>Emergency Beacon & Triage System"]
-        ORG["js/organizer.js<br/>Organizer Command Center & Broadcaster"]
-        A11Y["js/accessibility.js<br/>Speech Synthesis & Audio Chimes"]
+      APP["frontend/js/app.js<br/>Central Orchestrator & State Store"]
+      MAP["frontend/js/map.js<br/>Interactive SVG Vector Map & Dijkstra Engine"]
+      REC["frontend/js/recommendations.js<br/>Interest Scoring Engine"]
+      CROWD["frontend/js/crowd-engine.js<br/>Crowd Density & Surge Simulator"]
+      SOS["frontend/js/sos-system.js<br/>Emergency Beacon & Triage System"]
+      ORG["frontend/js/organizer.js<br/>Organizer Command Center & Broadcaster"]
+      A11Y["frontend/js/accessibility.js<br/>Speech Synthesis & Audio Chimes"]
     end
 
     subgraph Layer 3: Execution Tools
-        SERV["execution/serve.ps1<br/>Zero-Dependency Local HTTP Server (PowerShell)"]
+      SERV["backend/execution/serve.ps1<br/>Zero-Dependency Local HTTP Server (PowerShell)"]
     end
 
     Layer 1 --> Layer 2
@@ -56,7 +56,7 @@ graph TD
 
 - **Layer 1 (Directives)**: Standard Operating Procedures in `directives/` governing routing heuristics, emergency protocols, and crowd density classifications.
 - **Layer 2 (Orchestration)**: Modular ES6+ JavaScript modules managing reactive state synchronization, Dijkstra pathfinding, speech narration, and `localStorage` persistence.
-- **Layer 3 (Execution)**: `execution/serve.ps1`, a lightweight, native Windows PowerShell web server leveraging `[System.Net.HttpListener]` with full MIME-type handling for zero-dependency local execution.
+- **Layer 3 (Execution)**: `backend/execution/serve.ps1`, a lightweight, native Windows PowerShell web server leveraging `[System.Net.HttpListener]` with full MIME-type handling for zero-dependency local execution.
 
 ---
 
@@ -67,13 +67,13 @@ graph TD
 Run the deterministic execution script directly in Windows PowerShell:
 
 ```powershell
-.\execution\serve.ps1 -OpenBrowser
+.\backend\execution\serve.ps1 -OpenBrowser
 ```
 
 Or specify a custom port:
 
 ```powershell
-.\execution\serve.ps1 -Port 8080 -OpenBrowser
+.\backend\execution\serve.ps1 -Port 8080 -OpenBrowser
 ```
 
 The server will automatically start at `http://localhost:8080/` and launch your default browser.
@@ -96,10 +96,24 @@ From the project root, run:
 
 ```powershell
 npm install
-node execution/auth_server.js
+node backend/execution/auth_server.js
 ```
 
 Create a `.env` file from `.env.example` and set `MONGODB_URI` to your MongoDB Atlas connection string. The optional `MONGODB_DB` and `AUTH_PORT` values default to `smart_event_experience` and `3000`. Open `http://localhost:3000/` after starting the server. Passwords are stored as salted `scrypt` hashes, never as plain text; login sessions use an HttpOnly cookie.
+
+### Method 4: Deploy to Netlify
+
+This repository includes a Netlify Function at `backend/netlify/functions/auth.js` and API routing in `netlify.toml`. Deployed clients use same-origin `/api/auth/*` requests because Netlify cannot run the local `AUTH_PORT` server.
+
+Add these variables in Netlify site settings:
+
+```text
+MONGODB_URI=mongodb+srv://...
+MONGODB_DB=smart_event_experience
+SESSION_SECRET=<long-random-secret>
+```
+
+Keep the Atlas password and `SESSION_SECRET` out of committed files. After saving the variables, trigger a new deploy. MongoDB Atlas network access must allow connections from the deployment environment.
 
 ---
 
@@ -186,28 +200,33 @@ Follow this demo sequence to showcase all major user journeys:
 
 ```
 HACK-SPRINT/
-├── index.html                   # Main semantic, accessible single-page application
-├── css/
-│   └── styles.css               # Design system, glassmorphism, high-contrast, responsive layout
-├── js/
-│   ├── app.js                   # Application coordinator, router, and event bus
-│   ├── data.js                  # Venue zones, graph waypoints/edges, sessions, amenities
-│   ├── map.js                   # Interactive SVG vector map & Dijkstra pathfinding engine
-│   ├── recommendations.js       # Interest-based scoring and recommendation algorithm
-│   ├── crowd-engine.js          # Zone crowd monitoring & surge simulator
-│   ├── sos-system.js            # Emergency SOS triage and first-aid locator
-│   ├── organizer.js             # Organizer dashboard, KPI metrics, broadcast studio
-│   ├── accessibility.js         # Speech narrator, sound synthesizer, contrast manager
-│   └── auth.js                   # Sign-up and sign-in API client
+├── frontend/
+│   ├── index.html                # Main semantic, accessible single-page application
+│   ├── landing.html              # Standalone product landing page
+│   ├── css/
+│   │   └── styles.css            # Design system, glassmorphism, high-contrast, responsive layout
+│   └── js/
+│       ├── app.js               # Application coordinator, router, and event bus
+│       ├── data.js              # Venue zones, graph waypoints/edges, sessions, amenities
+│       ├── map.js               # Interactive SVG vector map & Dijkstra pathfinding engine
+│       ├── recommendations.js   # Interest-based scoring and recommendation algorithm
+│       ├── crowd-engine.js      # Zone crowd monitoring & surge simulator
+│       ├── sos-system.js         # Emergency SOS triage and first-aid locator
+│       ├── organizer.js          # Organizer dashboard, KPI metrics, broadcast studio
+│       ├── accessibility.js      # Speech narrator, sound synthesizer, contrast manager
+│       └── auth.js               # Sign-up and sign-in API client
 ├── directives/
 │   ├── smart_event_platform.md  # Layer 1: Platform SOP
 │   ├── crowd_simulation.md      # Layer 1: Crowd heuristics & detour routing SOP
 │   ├── emergency_protocol.md    # Layer 1: Emergency & SOS response SOP
 │   └── README.md
-├── execution/
-│   ├── serve.ps1                # Layer 3: Local zero-dependency PowerShell HTTP server
-│   ├── auth_server.js            # MongoDB authentication API and static file server
-│   └── README.md
+├── backend/
+│   ├── execution/
+│   │   ├── serve.ps1            # Layer 3: Local zero-dependency PowerShell HTTP server
+│   │   ├── auth_server.js       # MongoDB authentication API and static file server
+│   │   └── README.md
+│   └── netlify/functions/
+│       └── auth.js              # Serverless MongoDB authentication function
 ├── .env.example                 # Environment configuration template
 ├── package.json                  # Minimal authentication dependencies
 ├── .gitignore                   # Ignores temp files, credentials, and virtual environments
