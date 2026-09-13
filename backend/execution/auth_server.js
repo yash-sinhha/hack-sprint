@@ -57,7 +57,7 @@ function sendJson(response, statusCode, payload, headers = {}) {
 
 function setCorsHeaders(request, response) {
   const origin = request.headers.origin || "";
-  const configuredOrigins = (process.env.FRONTEND_ORIGIN || "")
+  const configuredOrigins = (process.env.FRONTEND_ORIGIN || "https://exquisite-sopapillas-77d43e.netlify.app")
     .split(",")
     .map((value) => value.trim())
     .filter(Boolean);
@@ -194,7 +194,7 @@ function handleSession(request, response, route) {
 
 function serveStatic(request, response) {
   const requestPath = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
-  const relativePath = requestPath === "/" ? "landing.html" : requestPath.slice(1);
+  const relativePath = requestPath === "/" ? "index.html" : requestPath.slice(1);
   const filePath = path.resolve(ROOT_DIR, relativePath);
   if (filePath !== ROOT_DIR && !filePath.startsWith(`${ROOT_DIR}${path.sep}`)) {
     response.writeHead(403);
