@@ -114,7 +114,6 @@ class SmartEventApp {
     this.renderCrowdRadar();
     this.renderAccessibilityHub();
     this.renderEmergencyCenter();
-    this.renderOrganizerDashboard();
     this.renderHomeOverview();
   }
 
@@ -224,11 +223,13 @@ class SmartEventApp {
     if (this.currentPersona === "organizer") {
       attendeeContainer.classList.add("hidden");
       organizerContainer.classList.remove("hidden");
+      organizerContainer.setAttribute("aria-hidden", "false");
       this.renderOrganizerDashboard();
       this.a11y.announceToScreenReader("Switched to Organizer Command Mode");
     } else {
       organizerContainer.classList.add("hidden");
       attendeeContainer.classList.remove("hidden");
+      organizerContainer.setAttribute("aria-hidden", "true");
       this.a11y.announceToScreenReader("Switched to Attendee Experience Mode");
     }
     this.renderHeader();
@@ -1017,6 +1018,7 @@ class SmartEventApp {
      ========================================================================== */
 
   renderOrganizerDashboard() {
+    if (this.currentPersona !== "organizer") return;
     const stats = this.organizer.getEventStats();
 
     // Stats row
