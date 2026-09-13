@@ -96,6 +96,7 @@ class SmartEventApp {
   }
 
   init() {
+    if (this.currentPersona === "organizer") this.mountOrganizerExperience();
     this.renderHeader();
     this.setupPersonaView();
     this.bindGlobalEvents();
@@ -120,6 +121,12 @@ class SmartEventApp {
   /* ==========================================================================
      PERSONA & HEADER MANAGEMENT
      ========================================================================== */
+
+  mountOrganizerExperience() {
+    if (document.getElementById("organizer-experience")) return;
+    const template = document.getElementById("organizer-template");
+    if (template) document.body.appendChild(template.content.cloneNode(true));
+  }
 
   renderHeader() {
     this.renderAuthState(this.auth.user);
@@ -217,19 +224,30 @@ class SmartEventApp {
   }
 
   setupPersonaView() {
+    if (this.currentPersona === "organizer") this.mountOrganizerExperience();
     const attendeeContainer = document.getElementById("attendee-experience");
     const organizerContainer = document.getElementById("organizer-experience");
 
     if (this.currentPersona === "organizer") {
       attendeeContainer.classList.add("hidden");
+      attendeeContainer.hidden = true;
+      attendeeContainer.inert = true;
       organizerContainer.classList.remove("hidden");
+      organizerContainer.hidden = false;
+      organizerContainer.inert = false;
       organizerContainer.setAttribute("aria-hidden", "false");
       this.renderOrganizerDashboard();
       this.a11y.announceToScreenReader("Switched to Organizer Command Mode");
     } else {
-      organizerContainer.classList.add("hidden");
+      organizerContainer?.classList.add("hidden");
+      if (organizerContainer) {
+        organizerContainer.hidden = true;
+        organizerContainer.inert = true;
+      }
       attendeeContainer.classList.remove("hidden");
-      organizerContainer.setAttribute("aria-hidden", "true");
+      attendeeContainer.hidden = false;
+      attendeeContainer.inert = false;
+      organizerContainer?.setAttribute("aria-hidden", "true");
       this.a11y.announceToScreenReader("Switched to Attendee Experience Mode");
     }
     this.renderHeader();
