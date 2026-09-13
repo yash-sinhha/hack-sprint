@@ -9,7 +9,7 @@ const path = require("node:path");
 const { MongoClient } = require("mongodb");
 
 const ROOT_DIR = path.resolve(__dirname, "../../frontend");
-const PORT = Number.parseInt(process.env.AUTH_PORT || "3000", 10);
+const PORT = process.env.PORT || process.env.AUTH_PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
 const MONGODB_DB = process.env.MONGODB_DB || "smart_event_experience";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
@@ -250,8 +250,8 @@ async function start() {
   await mongoClient.connect();
   users = mongoClient.db(MONGODB_DB).collection("users");
   await users.createIndex({ email: 1 }, { unique: true });
-  server.listen(PORT, "127.0.0.1", () => {
-    console.log(`Auth server running at http://localhost:${PORT}`);
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log(`Authentication server running on port ${PORT}`);
     console.log(`MongoDB database: ${MONGODB_DB}`);
   });
 }
