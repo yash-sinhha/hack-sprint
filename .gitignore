@@ -4,6 +4,7 @@
 
 # Environment variables and API keys
 .env
+node_modules/
 data/*.sqlite3
 
 # Google OAuth credentials

@@ -18,6 +18,7 @@ export class EventMapEngine {
     this.zoom = 1;
     this.isPanning = false;
     this.panStart = { x: 0, y: 0 };
+    this.pointerId = null;
 
     // Active Route State
     this.currentRoute = null;
@@ -98,6 +99,7 @@ export class EventMapEngine {
     this.viewBox.h = this.baseViewBox.h / this.zoom;
     this.viewBox.x = centerX - this.viewBox.w / 2;
     this.viewBox.y = centerY - this.viewBox.h / 2;
+    this.clampViewBox();
 
     this.updateSvgViewBox();
   }
@@ -107,6 +109,11 @@ export class EventMapEngine {
     if (svg) {
       svg.setAttribute('viewBox', `${this.viewBox.x} ${this.viewBox.y} ${this.viewBox.w} ${this.viewBox.h}`);
     }
+  }
+
+  clampViewBox() {
+    this.viewBox.x = Math.max(0, Math.min(this.baseViewBox.w - this.viewBox.w, this.viewBox.x));
+    this.viewBox.y = Math.max(0, Math.min(this.baseViewBox.h - this.viewBox.h, this.viewBox.y));
   }
 
   render() {
@@ -297,10 +304,10 @@ export class EventMapEngine {
         </svg>
 
         <!-- Floating Map Overlay Controls -->
-        <div class="map-controls-panel">
-          <button type="button" class="map-btn" id="btn-zoom-in" title="Zoom In" aria-label="Zoom In">➕</button>
-          <button type="button" class="map-btn" id="btn-zoom-out" title="Zoom Out" aria-label="Zoom Out">➖</button>
-          <button type="button" class="map-btn" id="btn-reset-view" title="Reset View" aria-label="Reset Map View">🎯</button>
+        <div class="map-controls-panel" aria-label="Map controls">
+          <button type="button" class="map-btn" id="btn-zoom-in" title="Zoom In" aria-label="Zoom In">+</button>
+          <button type="button" class="map-btn" id="btn-zoom-out" title="Zoom Out" aria-label="Zoom Out">-</button>
+          <button type="button" class="map-btn" id="btn-reset-view" title="Reset View" aria-label="Reset Map View">R</button>
         </div>
 
         <!-- Legend Overlay -->
@@ -325,25 +332,35 @@ export class EventMapEngine {
     this.container.querySelector('#btn-zoom-out')?.addEventListener('click', () => this.zoomOut());
     this.container.querySelector('#btn-reset-view')?.addEventListener('click', () => this.resetView());
 
-    // Mouse Pan & Drag
-    svg.addEventListener('mousedown', (e) => {
+    // Pointer pan works with both mouse and touch devices.
+    svg.addEventListener('pointerdown', (e) => {
       if (e.target.closest('.zone-group') || e.target.closest('.map-node')) return;
       this.isPanning = true;
+      this.pointerId = e.pointerId;
       this.panStart = { x: e.clientX, y: e.clientY };
+      svg.setPointerCapture(e.pointerId);
     });
 
-    window.addEventListener('mousemove', (e) => {
-      if (!this.isPanning) return;
+    svg.addEventListener('pointermove', (e) => {
+      if (!this.isPanning || e.pointerId !== this.pointerId) return;
       const dx = (e.clientX - this.panStart.x) * (this.viewBox.w / 960);
       const dy = (e.clientY - this.panStart.y) * (this.viewBox.h / 720);
       this.viewBox.x -= dx;
       this.viewBox.y -= dy;
+      this.clampViewBox();
       this.panStart = { x: e.clientX, y: e.clientY };
       this.updateSvgViewBox();
     });
 
-    window.addEventListener('mouseup', () => {
+    svg.addEventListener('pointerup', (e) => {
+      if (e.pointerId !== this.pointerId) return;
       this.isPanning = false;
+      this.pointerId = null;
+      svg.releasePointerCapture(e.pointerId);
+    });
+    svg.addEventListener('pointercancel', () => {
+      this.isPanning = false;
+      this.pointerId = null;
     });
 
     // Wheel Zoom

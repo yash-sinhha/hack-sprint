@@ -134,13 +134,33 @@ class SmartEventApp {
   }
 
   renderAuthState(user) {
+    const landing = document.getElementById("public-landing");
+    const appHeader = document.getElementById("app-header");
+    const announcements = document.getElementById("live-announcements-banner");
+    const attendeeExperience = document.getElementById("attendee-experience");
+    const organizerExperience = document.getElementById("organizer-experience");
+    [appHeader, announcements, attendeeExperience, organizerExperience].forEach((element) => {
+      element?.classList.toggle("hidden", !user);
+    });
+    landing?.classList.toggle("hidden", !!user);
+
     const authButton = document.getElementById("btn-auth");
-    if (!authButton) return;
-    authButton.textContent = user ? `Sign Out (${user.name})` : "Sign In";
-    authButton.setAttribute("aria-label", user ? `Sign out ${user.name}` : "Sign in");
+    if (authButton) {
+      authButton.textContent = user ? `Sign Out (${user.name})` : "Sign In";
+      authButton.setAttribute("aria-label", user ? `Sign out ${user.name}` : "Sign in");
+    }
+    const modal = document.getElementById("modal-auth");
+    if (!modal) return;
+    if (user) {
+      modal.classList.remove("modal-open", "auth-required");
+      modal.removeAttribute("data-required");
+    } else {
+      modal.classList.remove("modal-open", "auth-required");
+      modal.dataset.required = "false";
+    }
   }
 
-  openAuthModal(mode = "signin") {
+  openAuthModal(mode = "signin", required = false) {
     const modal = document.getElementById("modal-auth");
     const form = document.getElementById("auth-form");
     const nameGroup = document.getElementById("auth-name-group");
@@ -152,6 +172,8 @@ class SmartEventApp {
 
     const isSignUp = mode === "signup";
     modal.dataset.mode = mode;
+    modal.dataset.required = required ? "true" : "false";
+    modal.classList.toggle("auth-required", required);
     form.reset();
     document.getElementById("auth-feedback").textContent = "";
     nameGroup.style.display = isSignUp ? "block" : "none";
@@ -1205,9 +1227,14 @@ class SmartEventApp {
       this.openAuthModal();
     });
 
+    ["btn-landing-login", "btn-landing-hero-login"].forEach((id) => {
+      document.getElementById(id)?.addEventListener("click", () => this.openAuthModal("signin"));
+    });
+
     document.getElementById("auth-form")?.addEventListener("submit", (event) => this.submitAuth(event));
     document.getElementById("btn-close-auth-modal")?.addEventListener("click", () => {
-      document.getElementById("modal-auth")?.classList.remove("modal-open");
+      const modal = document.getElementById("modal-auth");
+      if (modal?.dataset.required !== "true") modal?.classList.remove("modal-open");
     });
     document.getElementById("btn-toggle-auth-mode")?.addEventListener("click", () => {
       const modal = document.getElementById("modal-auth");

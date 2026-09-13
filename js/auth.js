@@ -1,26 +1,16 @@
-const AUTH_API_BASE = "http://localhost:3000/api/auth";
+const AUTH_API_BASE = window.location.port === "3000"
+  ? "/api/auth"
+  : `${window.location.protocol}//${window.location.hostname}:3000/api/auth`;
 
 export class AuthManager {
   constructor({ onStateChanged } = {}) {
     this.onStateChanged = onStateChanged;
-    this.user = this.loadUser();
-  }
-
-  loadUser() {
-    try {
-      return JSON.parse(localStorage.getItem("nexus_auth_user")) || null;
-    } catch {
-      return null;
-    }
+    this.user = null;
+    this.restoreSession();
   }
 
   saveUser(user) {
     this.user = user;
-    if (user) {
-      localStorage.setItem("nexus_auth_user", JSON.stringify(user));
-    } else {
-      localStorage.removeItem("nexus_auth_user");
-    }
     this.onStateChanged?.(this.user);
   }
 
@@ -28,11 +18,25 @@ export class AuthManager {
     const response = await fetch(`${AUTH_API_BASE}/${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify(payload)
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || "Authentication request failed.");
     return data.user;
+  }
+
+  async restoreSession() {
+    try {
+      const response = await fetch(`${AUTH_API_BASE}/me`, { credentials: "include" });
+      if (response.ok) {
+        this.saveUser((await response.json()).user);
+      } else {
+        this.saveUser(null);
+      }
+    } catch {
+      this.saveUser(null);
+    }
   }
 
   async signUp(name, email, password) {
@@ -47,7 +51,11 @@ export class AuthManager {
     return user;
   }
 
-  signOut() {
-    this.saveUser(null);
+  async signOut() {
+    try {
+      await fetch(`${AUTH_API_BASE}/signout`, { method: "POST", credentials: "include" });
+    } finally {
+      this.saveUser(null);
+    }
   }
 }

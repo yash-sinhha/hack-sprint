@@ -86,19 +86,20 @@ You can also open `index.html` directly in modern web browsers (Chrome, Edge, Br
 Start-Process "http://localhost:8080"
 ```
 
-> **Note:** Zero external packages or package managers (`npm`, `node`, `uv`, `pip`) are required. The entire platform runs 100% locally and self-contained.
+> **Note:** The core platform is self-contained. Authentication uses the two minimal Node.js dependencies listed in `package.json`.
 
 ### Method 3: Run with Authentication
 
-The sign-in and sign-up controls require the small Node.js backend, which serves the website and stores users in `data/users.sqlite3`. Use Node.js 22.5 or newer for the built-in `node:sqlite` module.
+The sign-in and sign-up controls require the Node.js backend and a MongoDB Atlas database. Use Node.js 22.5 or newer.
 
 From the project root, run:
 
 ```powershell
+npm install
 node execution/auth_server.js
 ```
 
-Then open `http://localhost:3000/`. The backend uses Python's standard library only. Passwords are stored as salted `scrypt` hashes, never as plain text. To use a different port or database location, set `AUTH_PORT` or `AUTH_DB_PATH` before starting the server.
+Create a `.env` file from `.env.example` and set `MONGODB_URI` to your MongoDB Atlas connection string. The optional `MONGODB_DB` and `AUTH_PORT` values default to `smart_event_experience` and `3000`. Open `http://localhost:3000/` after starting the server. Passwords are stored as salted `scrypt` hashes, never as plain text; login sessions use an HttpOnly cookie.
 
 ---
 
@@ -205,9 +206,10 @@ HACK-SPRINT/
 │   └── README.md
 ├── execution/
 │   ├── serve.ps1                # Layer 3: Local zero-dependency PowerShell HTTP server
-│   └── auth_server.js            # SQLite authentication API and static file server
+│   ├── auth_server.js            # MongoDB authentication API and static file server
 │   └── README.md
 ├── .env.example                 # Environment configuration template
+├── package.json                  # Minimal authentication dependencies
 ├── .gitignore                   # Ignores temp files, credentials, and virtual environments
 ├── AGENT.md                     # 3-Layer Architecture rules
 ├── AGENTS.md                    # Mirror of AGENT.md

@@ -1,33 +1,26 @@
 "use strict";
 
+require("dotenv").config({ path: require("node:path").resolve(__dirname, "../.env") });
+
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
-const { DatabaseSync } = require("node:sqlite");
+const { MongoClient } = require("mongodb");
 
 const ROOT_DIR = path.resolve(__dirname, "..");
-const DATABASE_PATH = process.env.AUTH_DB_PATH || path.join(ROOT_DIR, "data", "users.sqlite3");
 const PORT = Number.parseInt(process.env.AUTH_PORT || "3000", 10);
+const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_DB = process.env.MONGODB_DB || "smart_event_experience";
+const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
+const sessions = new Map();
 
-fs.mkdirSync(path.dirname(DATABASE_PATH), { recursive: true });
-const database = new DatabaseSync(DATABASE_PATH);
-database.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT NOT NULL UNIQUE COLLATE NOCASE,
-    password_hash TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-  )
-`);
+if (!MONGODB_URI) {
+  throw new Error("MONGODB_URI is required in .env");
+}
 
-const insertUser = database.prepare(
-  "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)"
-);
-const findUser = database.prepare(
-  "SELECT name, email, password_hash FROM users WHERE email = ?"
-);
+const mongoClient = new MongoClient(MONGODB_URI);
+let users;
 
 function hashPassword(password) {
   const salt = crypto.randomBytes(16);
@@ -51,15 +44,23 @@ function verifyPassword(password, storedHash) {
   }
 }
 
-function sendJson(response, statusCode, payload) {
+function sendJson(response, statusCode, payload, headers = {}) {
   const body = JSON.stringify(payload);
   response.writeHead(statusCode, {
     "Content-Type": "application/json; charset=utf-8",
     "Content-Length": Buffer.byteLength(body),
     "Cache-Control": "no-store",
-    "Access-Control-Allow-Origin": "*"
+    ...headers
   });
   response.end(body);
+}
+
+function setCorsHeaders(request, response) {
+  const origin = request.headers.origin || "";
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
+    response.setHeader("Access-Control-Allow-Origin", origin);
+    response.setHeader("Access-Control-Allow-Credentials", "true");
+  }
 }
 
 function readJson(request) {
@@ -79,6 +80,41 @@ function readJson(request) {
     });
     request.on("error", reject);
   });
+}
+
+function parseCookies(request) {
+  return Object.fromEntries((request.headers.cookie || "").split(";").filter(Boolean).map((part) => {
+    const index = part.indexOf("=");
+    return [part.slice(0, index).trim(), decodeURIComponent(part.slice(index + 1).trim())];
+  }));
+}
+
+function cookieSecurity(request) {
+  return request.headers["x-forwarded-proto"] === "https" || request.socket.encrypted ? "; Secure" : "";
+}
+
+function sessionCookie(request, token) {
+  return `nexus_session=${encodeURIComponent(token)}; HttpOnly${cookieSecurity(request)}; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE}`;
+}
+
+function expiredSessionCookie(request) {
+  return `nexus_session=; HttpOnly${cookieSecurity(request)}; SameSite=Lax; Path=/; Max-Age=0`;
+}
+
+function createSession(user) {
+  const token = crypto.randomBytes(32).toString("hex");
+  sessions.set(token, { user, expiresAt: Date.now() + SESSION_MAX_AGE * 1000 });
+  return token;
+}
+
+function getSessionUser(request) {
+  const token = parseCookies(request).nexus_session;
+  const session = token && sessions.get(token);
+  if (!session || session.expiresAt <= Date.now()) {
+    if (token) sessions.delete(token);
+    return null;
+  }
+  return session.user;
 }
 
 async function handleAuth(request, response, route) {
@@ -108,25 +144,41 @@ async function handleAuth(request, response, route) {
       return;
     }
 
+    const user = { name, email };
     try {
-      insertUser.run(name, email, hashPassword(password));
+      await users.insertOne({ ...user, passwordHash: hashPassword(password), createdAt: new Date() });
     } catch (error) {
-      if (error.code === "SQLITE_CONSTRAINT_UNIQUE") {
+      if (error.code === 11000) {
         sendJson(response, 409, { error: "An account with that email already exists." });
         return;
       }
       throw error;
     }
-    sendJson(response, 201, { user: { name, email } });
+    const token = createSession(user);
+    sendJson(response, 201, { user }, { "Set-Cookie": sessionCookie(request, token) });
     return;
   }
 
-  const user = findUser.get(email);
-  if (!user || !verifyPassword(password, user.password_hash)) {
+  const storedUser = await users.findOne({ email });
+  if (!storedUser || !verifyPassword(password, storedUser.passwordHash)) {
     sendJson(response, 401, { error: "Email or password is incorrect." });
     return;
   }
-  sendJson(response, 200, { user: { name: user.name, email: user.email } });
+  const user = { name: storedUser.name, email: storedUser.email };
+  const token = createSession(user);
+  sendJson(response, 200, { user }, { "Set-Cookie": sessionCookie(request, token) });
+}
+
+function handleSession(request, response, route) {
+  if (route === "/api/auth/me") {
+    const user = getSessionUser(request);
+    sendJson(response, user ? 200 : 401, user ? { user } : { error: "Not signed in." });
+    return;
+  }
+
+  const token = parseCookies(request).nexus_session;
+  if (token) sessions.delete(token);
+  sendJson(response, 200, { ok: true }, { "Set-Cookie": expiredSessionCookie(request) });
 }
 
 function serveStatic(request, response) {
@@ -159,11 +211,13 @@ function serveStatic(request, response) {
 
 const server = http.createServer(async (request, response) => {
   const route = new URL(request.url, "http://localhost").pathname;
+  if (route.startsWith("/api/")) {
+    setCorsHeaders(request, response);
+  }
   if (request.method === "OPTIONS" && route.startsWith("/api/")) {
     response.writeHead(204, {
-      "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Headers": "Content-Type",
-      "Access-Control-Allow-Methods": "POST, OPTIONS"
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
     });
     response.end();
     return;
@@ -176,6 +230,14 @@ const server = http.createServer(async (request, response) => {
     }
     return;
   }
+  if (request.method === "GET" && route === "/api/auth/me") {
+    handleSession(request, response, route);
+    return;
+  }
+  if (request.method === "POST" && route === "/api/auth/signout") {
+    handleSession(request, response, route);
+    return;
+  }
   if (request.method === "GET" || request.method === "HEAD") {
     serveStatic(request, response);
     return;
@@ -184,14 +246,24 @@ const server = http.createServer(async (request, response) => {
   response.end("404 Not Found");
 });
 
-server.listen(PORT, "127.0.0.1", () => {
-  console.log(`Auth server running at http://localhost:${PORT}`);
-  console.log(`SQLite database: ${DATABASE_PATH}`);
-});
+async function start() {
+  await mongoClient.connect();
+  users = mongoClient.db(MONGODB_DB).collection("users");
+  await users.createIndex({ email: 1 }, { unique: true });
+  server.listen(PORT, "127.0.0.1", () => {
+    console.log(`Auth server running at http://localhost:${PORT}`);
+    console.log(`MongoDB database: ${MONGODB_DB}`);
+  });
+}
 
-function closeServer() {
-  server.close(() => database.close());
+async function closeServer() {
+  server.close();
+  await mongoClient.close();
 }
 
 process.on("SIGINT", closeServer);
 process.on("SIGTERM", closeServer);
+start().catch((error) => {
+  console.error("Could not start authentication server:", error.message);
+  process.exit(1);
+});
